@@ -21,7 +21,12 @@ class BlogHandler(webapp2.RequestHandler):
         """
 
         # TODO - filter the query so that only posts by the given user
-        return None
+        query = Post.all().filter("author", self.user).order('-created')
+        username = self.request.get("username") #Have to define username in order for this to work
+        #The Database class has two methods for retrieving records Query and Fetch. These are pretty much identical except Fetch returns a List<> of POCO's
+        #whereas Query uses yield return to iterate over the results without loading the whole set into memory.
+        return query.fetch(limit=limit, offset=offset)
+
 
     def get_user_by_name(self, username):
         """ Get a user object from the db, based on their username """
@@ -69,7 +74,7 @@ class IndexHandler(BlogHandler):
         response = t.render(users = users)
         self.response.write(response)
 
-class BlogIndexHandler(BlogHandler):
+class BlogIndexHandler(BlogHandler): #this inherits from BlogHandler
 
     # number of blog posts per page to display
     page_size = 5
@@ -142,7 +147,7 @@ class NewPostHandler(BlogHandler):
 
             # get the id of the new post, so we can render the post's page (via the permalink)
             id = post.key().id()
-            self.redirect("/blog/%s" % id)
+            self.redirect("/blog/%s" % id) #this is how they redirected to the proper id numbered page for the blog post. Different from mine, in which I concatenated.
         else:
             error = "we need both a title and a body!"
             self.render_form(title, body, error)
